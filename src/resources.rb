@@ -14,7 +14,7 @@ class Payload
   end
 
   def notification_target?
-    !(event_type == 'edited' || event_type == 'moved')
+    !(event_type == 'edited' || event_type == 'moved' || event_type == 'deleted' || kind =~ /blocker|pull_request|task/)
   end
 
   def person
@@ -27,6 +27,10 @@ class Payload
 
   def resources
     body['primary_resources'].map{ |resource| Resource.new(resource) }
+  end
+
+  def kind
+    body['kind']
   end
 
   def notification_message

@@ -4,7 +4,7 @@ require_relative '../src/resources'
 describe 'Payload' do
   let(:body) {
       {
-        kind: 'story_update_activity',
+        kind: kind,
         message: 'Action Message',
         highlight: highlight,
         primary_resources:[
@@ -32,6 +32,7 @@ describe 'Payload' do
   }
   let(:highlight) { 'created' }
   let(:payload) { Payload.new(body) }
+  let(:kind) { 'story_update_activity' }
 
   describe '#notification_target?' do
 
@@ -52,7 +53,28 @@ describe 'Payload' do
 
       it { is_expected.to be false }
     end
-  end
+
+    context 'blocker create' do
+      let(:highlight) { 'created' }
+      let(:kind) { 'blocker_create_activity' }
+
+      it { is_expected.to be false }
+    end
+
+    context 'task create' do
+      let(:highlight) { 'created' }
+      let(:kind) { 'task_create_activity' }
+
+      it { is_expected.to be false }
+    end
+
+    context 'PR create' do
+      let(:highlight) { 'created' }
+      let(:kind) { 'pull_request_create_activity' }
+
+      it { is_expected.to be false }
+    end
+end
 
 
   describe '#notification_message' do
