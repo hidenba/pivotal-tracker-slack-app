@@ -13,6 +13,18 @@ class Payload
     body['message']
   end
 
+  def comment_body_with_mention
+    comment_body.gsub(/@.+?(?=\s|\z)/){ |mention| "<#{mention}>" }
+  end
+
+  def message_without_comment_body
+    comment_body.empty? ? message : /\A.+(?=: ")/.match(message).to_s
+  end
+
+  def comment_body
+    /(?<=").+(?=")/m.match(message).to_s
+  end
+
   def notification_target?
     !(event_type == 'edited' || event_type == 'moved' || event_type == 'deleted' || kind =~ /blocker|pull_request|task/)
   end
@@ -34,31 +46,42 @@ class Payload
   end
 
   def notification_message
-    body = {
+    message_body = {
       blocks: [
         {
           type: :header,
           text: {
             type: :plain_text,
-            text: message,
+            text: message_without_comment_body,
             emoji: true
           }
         }
       ]
     }
 
-    resources&.each do |resource|
-      block = {
+    if !comment_body.empty?
+      comment = {
         type: :section,
         text: {
           type: :mrkdwn,
-          text: resource.message
+          text: comment_body_with_mention
         }
       }
-      body[:blocks] << block
+      message_body[:blocks] << comment
     end
 
-    body
+    resources&.each do |resource|
+      block = {
+        type: :context,
+        elements: [{
+          type: :mrkdwn,
+          text: "#{project.message}: #{resource.message}"
+        }]
+      }
+      message_body[:blocks] << block
+    end
+
+    message_body
   end
 end
 
@@ -82,6 +105,10 @@ class Project
 
   def url
     "https://www.pivotaltracker.com/n/projects/#{id}"
+  end
+
+  def message
+    "<#{url}|#{name}>"
   end
 end
 

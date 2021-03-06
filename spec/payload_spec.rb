@@ -5,7 +5,7 @@ describe 'Payload' do
   let(:body) {
       {
         kind: kind,
-        message: 'Action Message',
+        message: message,
         highlight: highlight,
         primary_resources:[
           {
@@ -34,6 +34,7 @@ describe 'Payload' do
   let(:payload) { Payload.new(body) }
   let(:kind) { 'story_update_activity' }
   let(:url) { 'https://www.pivotaltracker.com/story/show/00000000' }
+  let(:message) { 'Action Message' }
 
   describe '#notification_target?' do
 
@@ -77,6 +78,35 @@ describe 'Payload' do
     end
   end
 
+  context 'comment' do
+    let(:message) { "hidenba added comment: \"AAAA@alice BBBB@bob CCC@charlie\n @dave\"" }
+
+    describe '#comment_body_with_mention' do
+      context 'メンションできる' do
+        subject { payload.comment_body_with_mention }
+
+        it { is_expected.to eql "AAAA<@alice> BBBB<@bob> CCC<@charlie>\n <@dave>"}
+      end
+    end
+
+    describe '#message_without_comment_body' do
+      context 'コメント以外を取得できる' do
+        subject { payload.message_without_comment_body }
+
+        it { is_expected.to eql "hidenba added comment"}
+      end
+    end
+
+    describe '#comment_body' do
+      context 'コメントを取得できる' do
+        subject { payload.comment_body }
+
+        it { is_expected.to eql "AAAA@alice BBBB@bob CCC@charlie\n @dave"}
+      end
+    end
+
+  end
+
   describe '#resources' do
     describe '#message' do
       subject { payload.resources.first.message }
@@ -93,29 +123,69 @@ describe 'Payload' do
   end
 
   describe '#notification_message' do
-    let(:message) {
-      {
-        blocks: [
-          {
-            text: {
-              emoji: true,
-              text: "Action Message",
-              type: :plain_text
-            },
-            type: :header
-          },
-          {
-            text: {
-              text: "<https://www.pivotaltracker.com/story/show/00000000|Story Name>",
-              type: :mrkdwn
-            },
-            type: :section
-          }
-        ]
-      }
-    }
     subject { payload.notification_message }
 
-    it { is_expected.to eql message }
+    context 'コメントなしの場合' do
+      let(:message_body) {
+        {
+          blocks: [
+            {
+              text: {
+                emoji: true,
+                text: "Action Message",
+                type: :plain_text
+              },
+              type: :header
+            },
+            {
+              type: :context,
+              elements: [
+                {
+                  text: "<https://www.pivotaltracker.com/n/projects/22222222|app>: <https://www.pivotaltracker.com/story/show/00000000|Story Name>",
+                  type: :mrkdwn
+                }
+              ]
+            }
+          ]
+        }
+      }
+      it { is_expected.to eql message_body }
+    end
+
+    context 'コメントありの場合' do
+      let(:message) { "hidenba added comment: \"AAAA@alice BBBB@bob CCC@charlie\n @dave\"" }
+      let(:message_body) {
+        {
+          blocks: [
+            {
+              text: {
+                emoji: true,
+                text: "hidenba added comment",
+                type: :plain_text
+              },
+              type: :header
+            },
+            {
+              text: {
+                text: "AAAA<@alice> BBBB<@bob> CCC<@charlie>\n <@dave>",
+                type: :mrkdwn
+              },
+              type: :section
+            },
+            {
+              type: :context,
+              elements: [
+                {
+                  text: "<https://www.pivotaltracker.com/n/projects/22222222|app>: <https://www.pivotaltracker.com/story/show/00000000|Story Name>",
+                  type: :mrkdwn
+                }
+              ]
+            }
+          ]
+        }
+      }
+
+      it { is_expected.to eql message_body}
+    end
   end
 end
