@@ -48,12 +48,11 @@ class Payload
     }
 
     resources&.each do |resource|
-      text = "<#{resource.url}|#{resource.name}>"
       block = {
         type: :section,
         text: {
           type: :mrkdwn,
-          text: text
+          text: resource.message
         }
       }
       body[:blocks] << block
@@ -87,12 +86,20 @@ class Project
 end
 
 class Resource
-  attr_reader :kind, :id, :name, :url
+  attr_reader :kind, :id, :name
 
   def initialize(body)
     @kind = body['kind']
     @id = body['id']
     @name = body['name']
     @url = body['url']
+  end
+
+  def url
+    @url.empty? ? nil : @url
+  end
+
+  def message
+    url.nil? ? name : "<#{@url}|#{name}>"
   end
 end

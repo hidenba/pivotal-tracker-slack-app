@@ -13,7 +13,7 @@ describe 'Payload' do
             id: 00000000,
             name: 'Story Name',
             story_type: 'feature',
-            url: 'https://www.pivotaltracker.com/story/show/00000000'
+            url: url
           }
         ],
         project: {
@@ -33,6 +33,7 @@ describe 'Payload' do
   let(:highlight) { 'created' }
   let(:payload) { Payload.new(body) }
   let(:kind) { 'story_update_activity' }
+  let(:url) { 'https://www.pivotaltracker.com/story/show/00000000' }
 
   describe '#notification_target?' do
 
@@ -74,8 +75,22 @@ describe 'Payload' do
 
       it { is_expected.to be false }
     end
-end
+  end
 
+  describe '#resources' do
+    describe '#message' do
+      subject { payload.resources.first.message }
+
+      context 'URLがある場合' do
+        it { is_expected.to eql '<https://www.pivotaltracker.com/story/show/00000000|Story Name>'}
+      end
+
+      context 'URLがない場合' do
+        let(:url) { '' }
+        it { is_expected.to eql 'Story Name' }
+      end
+    end
+  end
 
   describe '#notification_message' do
     let(:message) {
