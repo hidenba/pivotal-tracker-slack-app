@@ -26,7 +26,7 @@ class Payload
   end
 
   def notification_target?
-    !(event_type == 'edited' || event_type == 'moved' || event_type == 'deleted' || kind =~ /blocker|pull_request|task/)
+    !(event_type == 'edited' || event_type == 'moved' || event_type == 'deleted' || kind =~ /blocker|pull_request|task|removed/)
   end
 
   def person
