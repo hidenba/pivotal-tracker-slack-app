@@ -40,14 +40,34 @@ describe 'Payload' do
 
     subject { payload.notification_target? }
 
-    context 'created' do
+    context 'started' do
+      let(:highlight) { 'started' }
+
       it { is_expected.to be true }
     end
 
-    context 'moved' do
-      let(:highlight) { 'moved' }
+    context 'finished' do
+      let(:highlight) { 'finished' }
 
-      it { is_expected.to be false }
+      it { is_expected.to be true }
+    end
+
+    context 'delivered' do
+      let(:highlight) { 'delivered' }
+
+      it { is_expected.to be true }
+    end
+
+    context 'accepted' do
+      let(:highlight) { 'accepted' }
+
+      it { is_expected.to be true }
+    end
+
+    context 'rejected' do
+      let(:highlight) { 'rejected' }
+
+      it { is_expected.to be true }
     end
 
     context 'edited' do

@@ -47,12 +47,18 @@ describe 'app.lambda_handler' do
       {statusCode: 200, body: 'ok'}
     }
 
-    context 'create story' do
-      let(:highlight) { 'created' }
+    context 'started story' do
+      let(:highlight) { 'started' }
 
       it { is_expected.to eql ok }
     end
-  end
+
+    context 'comment story' do
+      let(:highlight) { 'added comment:' }
+
+      it { is_expected.to eql ok }
+    end
+end
 
   context '通知対象外' do
     let(:skip) {
