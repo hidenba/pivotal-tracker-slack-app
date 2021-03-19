@@ -12,7 +12,7 @@ describe 'app.lambda_handler' do
         primary_resources:[
           {
             kind: 'story',
-            id: 00000000,
+            id: '00000000',
             name: 'Story Name',
             story_type: 'feature',
             url: 'https://www.pivotaltracker.com/story/show/00000000'
@@ -20,18 +20,21 @@ describe 'app.lambda_handler' do
         ],
         project: {
           kind: 'project',
-          id: 22222222,
+          id: '22222222',
           name: 'app'
         },
         performed_by: {
           kind: 'person',
-          id:33333333,
+          id: '33333333',
           name: 'hidenba',
           initials: 'hidenba'
         },
         occurred_at:1614846617000
       }.to_json
     }
+  }
+  let(:ok) {
+    {statusCode: 200, body: 'ok'}
   }
 
   before do
@@ -43,9 +46,6 @@ describe 'app.lambda_handler' do
   subject { lambda_handler event: event, context: nil }
 
   context '通知対象' do
-    let(:ok) {
-      {statusCode: 200, body: 'ok'}
-    }
 
     context 'started story' do
       let(:highlight) { 'started' }
@@ -58,14 +58,12 @@ describe 'app.lambda_handler' do
 
       it { is_expected.to eql ok }
     end
-end
+  end
 
   context '通知対象外' do
     let(:skip) {
       {statusCode: 200, body: 'skip'}
     }
-
-    subject { lambda_handler event: event, context: nil }
 
     context 'edit story' do
       let(:highlight) { 'edited' }
@@ -80,4 +78,23 @@ end
     end
   end
 
+  context 'リリースアナウンス' do
+    let(:highlight) { 'accepted' }
+    let(:labels) {
+      {
+        id: '00000000',
+        labels: [
+          {name: 'external_announce'}
+        ]
+      }.to_json
+    }
+
+    before do
+      allow(ENV).to receive(:[]).with('EXTERNAL_ANNOUNCE').and_return('https://hooks.slack.com/services/external')
+      stub_request(:post, ENV['EXTERNAL_ANNOUNCE']).to_return(body: 'ok')
+      stub_request(:get, 'https://www.pivotaltracker.com/services/v5/projects/22222222/stories/00000000').to_return(body: labels)
+    end
+
+    it { is_expected.to eql ok }
+  end
 end

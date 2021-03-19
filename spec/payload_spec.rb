@@ -10,7 +10,7 @@ describe 'Payload' do
         primary_resources:[
           {
             kind: 'story',
-            id: 00000000,
+            id: '00000000',
             name: 'Story Name',
             story_type: 'feature',
             url: url
@@ -124,7 +124,6 @@ describe 'Payload' do
         it { is_expected.to eql "AAAA@alice BBBB@bob CCC@charlie\n @dave"}
       end
     end
-
   end
 
   describe '#resources' do
@@ -207,5 +206,71 @@ describe 'Payload' do
 
       it { is_expected.to eql message_body}
     end
+  end
+
+  describe '#external_announce_message' do
+    let(:highlight) { 'accepted' }
+    let(:labels) {
+      {
+        id: '00000000',
+        labels: [
+          {name: 'external_announce'}
+        ]
+      }.to_json
+    }
+    let(:message_body) {
+      {
+        blocks: [
+          {
+            text: {
+              emoji: true,
+              text: ':rocket: Story Name :rocket:',
+              type: :plain_text
+            },
+            type: :header
+          },
+          {
+            elements: [{
+              text: 'https://www.pivotaltracker.com/story/show/00000000',
+              type: :mrkdwn
+            }],
+            type: :context
+          }
+        ]
+      }
+    }
+
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('EXTERNAL_ANNOUNCE').and_return('https://hooks.slack.com/services/external')
+      allow(ENV).to receive(:[]).with('TRACKER_TOKEN').and_return('xxxxxxxxxxx')
+      stub_request(:post, ENV['EXTERNAL_ANNOUNCE']).to_return(body: 'ok')
+      stub_request(:get, 'https://www.pivotaltracker.com/services/v5/projects/22222222/stories/00000000').to_return(body: labels)
+    end
+
+    subject { payload.external_announce_message }
+
+    it { is_expected.to eql message_body }
+  end
+
+  describe '#labels' do
+    let(:labels) {
+      {
+        id: '00000000',
+        labels: [
+          {name: 'external_announce'}
+        ]
+      }.to_json
+    }
+
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('TRACKER_TOKEN').and_return('xxxxxxxxxxx')
+      stub_request(:get, 'https://www.pivotaltracker.com/services/v5/projects/22222222/stories/00000000').to_return(body: labels)
+    end
+
+    subject { payload.labels.first }
+
+    it { expect(subject.name).to eql 'external_announce' }
   end
 end
