@@ -150,11 +150,10 @@ describe 'Payload' do
           blocks: [
             {
               text: {
-                emoji: true,
                 text: "Action Message",
-                type: :plain_text
+                type: :mrkdwn
               },
-              type: :header
+              type: :section
             },
             {
               type: :context,
@@ -178,11 +177,10 @@ describe 'Payload' do
           blocks: [
             {
               text: {
-                emoji: true,
                 text: "hidenba added comment",
-                type: :plain_text
+                type: :mrkdwn
               },
-              type: :header
+              type: :section
             },
             {
               text: {

@@ -65,11 +65,10 @@ pp res.status
     message_body = {
       blocks: [
         {
-          type: :header,
+          type: :section,
           text: {
-            type: :plain_text,
+            type: :mrkdwn,
             text: message_without_comment_body,
-            emoji: true
           }
         }
       ]
